@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+:root {
+  --phasor-void: #080B12;
+  --phasor-surface: #0D1117;
+  --phasor-border: #1E2435;
+  --phasor-electric: #38BDF8;
+  --phasor-trace: #0EA5E9;
+  --phasor-snow: #F1F5F9;
+  --phasor-muted: #64748B;
+}
+
+@theme inline {
+  --color-phasor-void: var(--phasor-void);
+  --color-phasor-surface: var(--phasor-surface);
+  --color-phasor-border: var(--phasor-border);
+  --color-phasor-electric: var(--phasor-electric);
+  --color-phasor-trace: var(--phasor-trace);
+  --color-phasor-snow: var(--phasor-snow);
+  --color-phasor-muted: var(--phasor-muted);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html,
+body {
+  background-color: var(--phasor-void);
+  color: var(--phasor-snow);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  height: 100%;
+}

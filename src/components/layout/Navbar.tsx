@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { SignInButton, UserButton, Show } from "@clerk/nextjs";
 
 export default function Navbar() {
   return (
@@ -16,6 +19,24 @@ export default function Navbar() {
         >
           simulator
         </Link>
+        <Show
+          when="signed-in"
+          fallback={
+            <SignInButton mode="modal">
+              <button className="text-phasor-muted text-sm hover:text-phasor-snow transition-colors">
+                sign in
+              </button>
+            </SignInButton>
+          }
+        >
+          <UserButton
+            appearance={{
+              elements: {
+                avatarBox: "w-7 h-7",
+              },
+            }}
+          />
+        </Show>
       </div>
     </nav>
   );

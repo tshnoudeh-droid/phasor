@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect, useRef, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import Navbar from "@/components/layout/Navbar";
 import SliderPanel from "@/components/sim/SliderPanel";
@@ -15,9 +16,11 @@ import type { SystemType } from "@/types/simulation";
 // Canvas must not SSR
 const SimCanvas = dynamic(() => import("@/components/sim/SimCanvas"), { ssr: false });
 
-export default function SimPage() {
+function SimPageInner() {
   const { result, runDebounced, run } = useSimulation();
   const { messages, isLoading, currentSystem, send } = useConversation();
+  const searchParams = useSearchParams();
+  const autoSentRef = useRef(false);
   const { values, sliderConfig, initFromParams, onChange } = useSliders(currentSystem);
   const [shareStatus, setShareStatus] = useState<"idle" | "saving" | "copied">("idle");
 
@@ -53,7 +56,6 @@ export default function SimPage() {
         const solver = getSolver(systemType);
         if (!solver) return null;
 
-        // Fill in defaults for missing params
         const merged = { ...solver.defaultParams, ...params };
         initFromParams(merged);
         return run(systemType, merged);
@@ -61,6 +63,15 @@ export default function SimPage() {
     },
     [send, initFromParams, run]
   );
+
+  // Auto-send ?q= query param from landing page "Try this" links
+  useEffect(() => {
+    const q = searchParams.get("q");
+    if (q && !autoSentRef.current) {
+      autoSentRef.current = true;
+      handleSend(q);
+    }
+  }, [searchParams, handleSend]);
 
   const handleSliderChange = useCallback(
     (key: string, value: number) => {
@@ -151,5 +162,13 @@ export default function SimPage() {
         <ChatPanel messages={messages} onSend={handleSend} isLoading={isLoading} />
       </div>
     </div>
+  );
+}
+
+export default function SimPage() {
+  return (
+    <Suspense>
+      <SimPageInner />
+    </Suspense>
   );
 }

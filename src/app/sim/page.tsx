@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import dynamic from "next/dynamic";
 import Navbar from "@/components/layout/Navbar";
 import SliderPanel from "@/components/sim/SliderPanel";
@@ -19,6 +19,33 @@ export default function SimPage() {
   const { result, runDebounced, run } = useSimulation();
   const { messages, isLoading, currentSystem, send } = useConversation();
   const { values, sliderConfig, initFromParams, onChange } = useSliders(currentSystem);
+  const [shareStatus, setShareStatus] = useState<"idle" | "saving" | "copied">("idle");
+
+  const handleSave = useCallback(async () => {
+    if (!result) return;
+    setShareStatus("saving");
+    try {
+      const res = await fetch("/api/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          systemType: result.systemType,
+          parameters: result.parameters,
+          conversation: messages
+            .filter((m) => !m.isLoading)
+            .map((m) => ({ role: m.role, content: m.content })),
+        }),
+      });
+      if (!res.ok) throw new Error("save failed");
+      const { slug } = (await res.json()) as { slug: string };
+      const url = `${process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin}/s/${slug}`;
+      await navigator.clipboard.writeText(url);
+      setShareStatus("copied");
+      setTimeout(() => setShareStatus("idle"), 2500);
+    } catch {
+      setShareStatus("idle");
+    }
+  }, [result, messages]);
 
   const handleSend = useCallback(
     (message: string) => {
@@ -82,14 +109,33 @@ export default function SimPage() {
         </div>
 
         {/* Equation panel */}
-        <div className="w-52 shrink-0 border-l border-phasor-border bg-phasor-surface overflow-hidden">
+        <div className="w-52 shrink-0 border-l border-phasor-border bg-phasor-surface overflow-hidden flex flex-col">
           {result && solver ? (
-            <EquationDisplay
-              equationLatex={solver.equationLatex}
-              systemType={result.systemType}
-              parameters={result.parameters}
-              metrics={result.metrics}
-            />
+            <>
+              <div className="flex-1 overflow-hidden">
+                <EquationDisplay
+                  equationLatex={solver.equationLatex}
+                  systemType={result.systemType}
+                  parameters={result.parameters}
+                  metrics={result.metrics}
+                />
+              </div>
+              <div className="border-t border-phasor-border p-2">
+                <button
+                  onClick={handleSave}
+                  disabled={shareStatus !== "idle"}
+                  className="w-full text-xs font-mono py-1.5 rounded border border-phasor-border
+                    text-phasor-muted hover:text-phasor-electric hover:border-phasor-electric
+                    transition-colors disabled:opacity-60"
+                >
+                  {shareStatus === "saving"
+                    ? "saving..."
+                    : shareStatus === "copied"
+                    ? "link copied!"
+                    : "share"}
+                </button>
+              </div>
+            </>
           ) : (
             <div className="h-full flex items-center justify-center p-4 text-center">
               <p className="text-phasor-muted text-xs leading-relaxed">

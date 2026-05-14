@@ -39,27 +39,41 @@ const EXAMPLES = [
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-screen bg-phasor-void text-phasor-snow transition-colors duration-200">
+    <div className="flex flex-col min-h-screen bg-phasor-void text-phasor-snow transition-colors duration-300">
       <Navbar />
 
       {/* Hero */}
       <section className="flex flex-col items-center justify-center flex-1 px-6 py-24 text-center">
-        <p className="text-phasor-muted text-xs font-mono tracking-[0.3em] uppercase mb-8">
+        <p
+          className="text-phasor-muted text-xs font-mono tracking-[0.3em] uppercase mb-8 animate-fade-in"
+          style={{ animationDelay: "0ms" }}
+        >
           browser-native physics engine
         </p>
-        <h1 className="text-4xl md:text-5xl font-light tracking-tight text-phasor-snow max-w-2xl leading-tight mb-5">
+        <h1
+          className="text-4xl md:text-5xl font-light tracking-tight text-phasor-snow max-w-2xl leading-tight mb-5 animate-slide-up"
+          style={{ animationDelay: "60ms" }}
+        >
           Describe any physical system.{" "}
           <span className="text-phasor-electric">Watch it run.</span>
         </h1>
-        <p className="text-phasor-muted text-base max-w-md leading-relaxed mb-10">
+        <p
+          className="text-phasor-muted text-base max-w-md leading-relaxed mb-10 animate-slide-up"
+          style={{ animationDelay: "120ms" }}
+        >
           Type a scenario in plain English. An RK4 solver runs the physics entirely in your browser.
           Groq explains what you&apos;re seeing — not what it guesses.
         </p>
-        <div className="flex items-center gap-4">
+        <div
+          className="flex items-center gap-4 animate-slide-up"
+          style={{ animationDelay: "180ms" }}
+        >
           <Link
             href="/sim"
             className="px-7 py-2.5 bg-phasor-electric text-phasor-void text-sm font-medium tracking-wide
-              hover:opacity-90 transition-opacity duration-150"
+              hover:opacity-90 active:scale-[0.97] transition-all duration-150
+              shadow-[0_0_24px_var(--phasor-electric-glow-strong)]
+              hover:shadow-[0_0_32px_var(--phasor-electric-glow-strong)]"
           >
             Try phasor →
           </Link>
@@ -68,7 +82,8 @@ export default function Home() {
             target="_blank"
             rel="noopener noreferrer"
             className="px-7 py-2.5 border border-phasor-border text-phasor-muted text-sm
-              hover:border-phasor-electric hover:text-phasor-snow transition-colors duration-150"
+              hover:border-phasor-electric hover:text-phasor-snow
+              active:scale-[0.97] transition-all duration-150"
           >
             GitHub
           </a>
@@ -78,22 +93,27 @@ export default function Home() {
       {/* Example cards */}
       <section className="px-6 pb-20">
         <div className="max-w-5xl mx-auto">
-          <p className="text-phasor-muted text-xs font-mono uppercase tracking-[0.2em] mb-6 text-center">
+          <p
+            className="text-phasor-muted text-xs font-mono uppercase tracking-[0.2em] mb-6 text-center animate-fade-in"
+            style={{ animationDelay: "240ms" }}
+          >
             5 supported systems
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {EXAMPLES.map((ex) => (
+            {EXAMPLES.map((ex, i) => (
               <Link
                 key={ex.label}
                 href={`/sim?q=${encodeURIComponent(ex.prompt)}`}
-                className="flex flex-col gap-3 p-5 bg-phasor-surface border border-phasor-border
-                  hover:border-phasor-electric transition-all duration-150 group"
+                className="animate-slide-up flex flex-col gap-3 p-5 bg-phasor-surface border border-phasor-border
+                  hover:border-phasor-electric hover:shadow-[0_0_20px_var(--phasor-electric-glow)]
+                  active:scale-[0.98] transition-all duration-200 group"
+                style={{ animationDelay: `${280 + i * 50}ms` }}
               >
                 <div className="flex items-center justify-between">
-                  <p className="text-phasor-muted text-xs font-mono uppercase tracking-wider group-hover:text-phasor-electric transition-colors duration-150">
+                  <p className="text-phasor-muted text-xs font-mono uppercase tracking-wider group-hover:text-phasor-electric transition-colors duration-200">
                     {ex.label}
                   </p>
-                  <span className="text-phasor-border text-xs group-hover:text-phasor-electric transition-colors duration-150">
+                  <span className="text-phasor-border text-xs group-hover:text-phasor-electric group-hover:translate-x-0.5 transition-all duration-200">
                     →
                   </span>
                 </div>

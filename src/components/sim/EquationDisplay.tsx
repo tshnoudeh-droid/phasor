@@ -1,6 +1,6 @@
 "use client";
 
-import { InlineMath, BlockMath } from "react-katex";
+import { BlockMath } from "react-katex";
 import "katex/dist/katex.min.css";
 import type { SolverMetrics, SystemType } from "@/types/simulation";
 
@@ -21,16 +21,16 @@ const systemLabels: Record<string, string> = {
 
 export default function EquationDisplay({ equationLatex, systemType, parameters, metrics }: Props) {
   return (
-    <div className="h-full flex flex-col gap-3 p-3 overflow-y-auto">
-      <div className="text-phasor-muted text-xs font-mono uppercase tracking-wider">
+    <div className="h-full flex flex-col gap-4 p-3.5 overflow-y-auto">
+      <div className="text-phasor-electric text-xs font-mono uppercase tracking-widest animate-fade-in">
         {systemLabels[systemType] ?? systemType}
       </div>
 
-      <div className="text-phasor-snow text-sm overflow-x-auto">
+      <div className="text-phasor-snow text-sm overflow-x-auto animate-fade-in" style={{ animationDelay: "40ms" }}>
         <BlockMath math={equationLatex} />
       </div>
 
-      <div className="border-t border-phasor-border pt-3 flex flex-col gap-1.5">
+      <div className="border-t border-phasor-border pt-3 flex flex-col gap-2 animate-slide-up" style={{ animationDelay: "80ms" }}>
         {Object.entries(parameters)
           .filter(([k]) => !["duration", "dt"].includes(k))
           .slice(0, 6)
@@ -45,9 +45,9 @@ export default function EquationDisplay({ equationLatex, systemType, parameters,
       </div>
 
       {Object.keys(metrics).length > 0 && (
-        <div className="border-t border-phasor-border pt-3 flex flex-col gap-1.5">
-          <div className="text-phasor-muted text-xs font-mono uppercase tracking-wider mb-1">
-            Metrics
+        <div className="border-t border-phasor-border pt-3 flex flex-col gap-2 animate-slide-up" style={{ animationDelay: "120ms" }}>
+          <div className="text-phasor-muted text-xs font-mono uppercase tracking-widest mb-0.5">
+            metrics
           </div>
           {metrics.naturalFrequency !== undefined && (
             <MetricRow label="ωₙ" value={`${metrics.naturalFrequency.toFixed(3)} rad/s`} />
@@ -116,6 +116,3 @@ function dampingLabel(zeta: number): string {
   if (zeta === 1) return "(critical)";
   return "(overdamped)";
 }
-
-// Suppress unused import warning — InlineMath used in JSX as needed
-void InlineMath;

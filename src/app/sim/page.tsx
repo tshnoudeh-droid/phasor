@@ -14,7 +14,6 @@ import { useSliders } from "@/hooks/useSliders";
 import { getSolver } from "@/lib/solvers";
 import type { SystemType } from "@/types/simulation";
 
-// Canvas must not SSR
 const SimCanvas = dynamic(() => import("@/components/sim/SimCanvas"), { ssr: false });
 
 function SimPageInner() {
@@ -56,7 +55,6 @@ function SimPageInner() {
       send(message, (systemType: SystemType, params: Record<string, number>) => {
         const solver = getSolver(systemType);
         if (!solver) return null;
-
         const merged = { ...solver.defaultParams, ...params };
         initFromParams(merged);
         return run(systemType, merged);
@@ -65,7 +63,6 @@ function SimPageInner() {
     [send, initFromParams, run]
   );
 
-  // Auto-send ?q= query param from landing page "Try this" links
   useEffect(() => {
     const q = searchParams.get("q");
     if (q && !autoSentRef.current) {
@@ -87,55 +84,82 @@ function SimPageInner() {
   const solver = currentSystem ? getSolver(currentSystem) : null;
 
   return (
-    <div className="flex flex-col h-screen bg-phasor-void overflow-hidden md:overflow-hidden overflow-auto">
+    <div className="flex flex-col h-screen bg-phasor-void overflow-hidden">
       <Navbar />
 
-      {/* Simulation panel — ~55% on desktop, auto on mobile */}
+      {/* Simulation panel */}
       <div
-        className="flex border-b border-phasor-border flex-shrink-0"
+        className="flex border-b border-phasor-border shrink-0"
         style={{ flex: "0 0 55%" }}
       >
         {/* Canvas + sliders */}
         <div className="flex flex-col flex-1 min-w-0">
-          <div className="flex-1 relative">
+          <div className="flex-1 relative overflow-hidden">
             {result ? (
               <SimErrorBoundary>
-                <SimCanvas
-                  states={result.states}
-                  systemType={result.systemType}
-                  width={800}
-                  height={220}
-                />
+                <div key={result.systemType} className="animate-fade-in w-full h-full">
+                  <SimCanvas
+                    states={result.states}
+                    systemType={result.systemType}
+                    width={800}
+                    height={220}
+                  />
+                </div>
               </SimErrorBoundary>
             ) : isLoading ? (
-              <div className="w-full h-full flex items-center justify-center bg-phasor-surface">
-                <div className="flex flex-col items-center gap-3">
-                  <div className="w-48 h-px bg-phasor-border relative overflow-hidden">
-                    <div className="absolute inset-y-0 left-0 w-1/3 bg-phasor-electric animate-pulse" />
-                  </div>
-                  <span className="text-phasor-muted text-xs font-mono">solving...</span>
+              <div className="w-full h-full flex items-center justify-center bg-phasor-surface animate-fade-in">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="w-56 h-px bg-phasor-border relative overflow-hidden shimmer-bar" />
+                  <span className="text-phasor-muted text-xs font-mono tracking-widest">
+                    solving
+                    <span
+                      className="inline-block"
+                      style={{
+                        animation: "dot-bounce 1.2s ease-in-out infinite",
+                        animationDelay: "0ms",
+                      }}
+                    >.</span>
+                    <span
+                      className="inline-block"
+                      style={{
+                        animation: "dot-bounce 1.2s ease-in-out infinite",
+                        animationDelay: "180ms",
+                      }}
+                    >.</span>
+                    <span
+                      className="inline-block"
+                      style={{
+                        animation: "dot-bounce 1.2s ease-in-out infinite",
+                        animationDelay: "360ms",
+                      }}
+                    >.</span>
+                  </span>
                 </div>
               </div>
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-phasor-surface text-phasor-muted text-sm">
-                Describe a physical system below to begin.
+              <div className="w-full h-full flex items-center justify-center bg-phasor-surface animate-fade-in">
+                <p className="text-phasor-muted/60 text-sm font-mono">
+                  describe a system below
+                </p>
               </div>
             )}
           </div>
           {result && solver && (
-            <SliderPanel
-              config={sliderConfig}
-              values={values}
-              onChange={handleSliderChange}
-            />
+            <div className="animate-slide-up">
+              <SliderPanel
+                config={sliderConfig}
+                values={values}
+                onChange={handleSliderChange}
+              />
+            </div>
           )}
         </div>
 
         {/* Equation panel — hidden on mobile */}
-        <div className="hidden md:flex w-52 shrink-0 border-l border-phasor-border bg-phasor-surface overflow-hidden flex-col">
+        <div className="hidden md:flex w-52 shrink-0 border-l border-phasor-border bg-phasor-surface overflow-hidden flex-col transition-colors duration-300">
           {result && solver ? (
             <>
-              <div className="flex-1 overflow-hidden">
+              <div className="flex-1 overflow-hidden animate-fade-in">
                 <EquationDisplay
                   equationLatex={solver.equationLatex}
                   systemType={result.systemType}
@@ -143,33 +167,34 @@ function SimPageInner() {
                   metrics={result.metrics}
                 />
               </div>
-              <div className="border-t border-phasor-border p-2">
+              <div className="border-t border-phasor-border p-2.5">
                 <button
                   onClick={handleSave}
                   disabled={shareStatus !== "idle"}
-                  className="w-full text-xs font-mono py-1.5 rounded border border-phasor-border
+                  className="w-full text-xs font-mono py-1.5 border border-phasor-border
                     text-phasor-muted hover:text-phasor-electric hover:border-phasor-electric
-                    transition-colors disabled:opacity-60"
+                    hover:shadow-[0_0_10px_var(--phasor-electric-glow)]
+                    active:scale-[0.98] transition-all duration-200 disabled:opacity-50"
                 >
                   {shareStatus === "saving"
                     ? "saving..."
                     : shareStatus === "copied"
-                    ? "link copied!"
+                    ? "link copied ✓"
                     : "share"}
                 </button>
               </div>
             </>
           ) : (
-            <div className="h-full flex items-center justify-center p-4 text-center">
-              <p className="text-phasor-muted text-xs leading-relaxed">
-                Equations and metrics appear here after simulation.
+            <div className="h-full flex items-center justify-center p-4 text-center animate-fade-in">
+              <p className="text-phasor-muted/60 text-xs leading-relaxed font-mono">
+                equations and metrics appear here
               </p>
             </div>
           )}
         </div>
       </div>
 
-      {/* Chat panel — ~45% */}
+      {/* Chat panel */}
       <div className="flex-1 min-h-0 overflow-hidden">
         <ChatPanel messages={messages} onSend={handleSend} isLoading={isLoading} />
       </div>

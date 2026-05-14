@@ -34,8 +34,10 @@ export default function ChatInput({ onSend, disabled, placeholder }: Props) {
     el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
   };
 
+  const canSend = !disabled && value.trim().length > 0;
+
   return (
-    <div className="flex gap-2 p-3 border-t border-phasor-border">
+    <div className="flex gap-2 p-3 border-t border-phasor-border bg-phasor-void/60 backdrop-blur-sm transition-colors duration-300">
       <textarea
         ref={textareaRef}
         rows={1}
@@ -44,20 +46,25 @@ export default function ChatInput({ onSend, disabled, placeholder }: Props) {
         onKeyDown={onKeyDown}
         onInput={onInput}
         disabled={disabled}
-        placeholder={placeholder ?? "Type a system or ask a question..."}
-        className="flex-1 resize-none bg-phasor-surface border border-phasor-border rounded px-3 py-2
-          text-sm text-phasor-snow placeholder:text-phasor-muted
+        placeholder={placeholder ?? "Describe a physical system..."}
+        className="flex-1 resize-none bg-phasor-surface border border-phasor-border
+          px-3.5 py-2.5 text-sm text-phasor-snow placeholder:text-phasor-muted/60
           focus:outline-none focus:border-phasor-electric
-          disabled:opacity-50 leading-relaxed"
+          focus:shadow-[0_0_16px_var(--phasor-electric-glow)]
+          disabled:opacity-40 leading-relaxed
+          transition-all duration-200 rounded"
       />
       <button
         onClick={send}
-        disabled={disabled || !value.trim()}
-        className="px-4 py-2 bg-phasor-electric text-phasor-void text-sm font-medium rounded
-          hover:bg-phasor-trace transition-colors
-          disabled:opacity-40 disabled:cursor-not-allowed shrink-0 self-end"
+        disabled={!canSend}
+        className="px-4 py-2 bg-phasor-electric text-phasor-void text-sm font-medium
+          hover:opacity-90 active:scale-95
+          disabled:opacity-30 disabled:cursor-not-allowed disabled:active:scale-100
+          transition-all duration-150 shrink-0 self-end rounded
+          shadow-[0_0_16px_var(--phasor-electric-glow)]
+          hover:shadow-[0_0_24px_var(--phasor-electric-glow-strong)]"
       >
-        Send
+        run
       </button>
     </div>
   );

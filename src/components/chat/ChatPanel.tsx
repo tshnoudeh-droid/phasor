@@ -24,24 +24,31 @@ export default function ChatPanel({ messages, onSend, isLoading }: Props) {
 
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: "smooth",
+      });
     }
   }, [messages]);
 
   return (
     <div className="flex flex-col h-full">
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
         {messages.length === 0 ? (
-          <div className="flex flex-col gap-4">
-            <p className="text-phasor-muted text-sm">
-              Describe any physical system in plain English.
+          <div className="flex flex-col gap-3 animate-fade-in">
+            <p className="text-phasor-muted text-xs font-mono uppercase tracking-wider">
+              Try a prompt
             </p>
-            <div className="flex flex-col gap-2">
-              {SUGGESTIONS.map((s) => (
+            <div className="flex flex-col gap-1.5">
+              {SUGGESTIONS.map((s, i) => (
                 <button
                   key={s}
                   onClick={() => onSend(s)}
-                  className="text-left text-xs text-phasor-muted hover:text-phasor-snow border border-phasor-border hover:border-phasor-electric rounded px-3 py-2 transition-colors"
+                  className="animate-slide-up text-left text-xs text-phasor-muted hover:text-phasor-snow
+                    border border-phasor-border hover:border-phasor-electric
+                    hover:shadow-[0_0_10px_var(--phasor-electric-glow)]
+                    rounded px-3 py-2 transition-all duration-200 active:scale-[0.99]"
+                  style={{ animationDelay: `${i * 40}ms` }}
                 >
                   {s}
                 </button>

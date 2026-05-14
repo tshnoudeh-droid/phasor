@@ -9,7 +9,7 @@ const MessageSchema = z.object({
 export const ParseRequestSchema = z.object({
   message: z.string().min(1).max(500).trim(),
   conversationHistory: z.array(MessageSchema).max(20),
-  currentSystem: z.string().max(50).optional(),
+  currentSystem: z.string().max(50).nullish(),
 });
 
 export const ExplainRequestSchema = z.object({

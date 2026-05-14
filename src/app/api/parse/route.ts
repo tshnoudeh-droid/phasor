@@ -86,7 +86,8 @@ export async function POST(request: NextRequest) {
     };
 
     return NextResponse.json(result);
-  } catch {
+  } catch (err) {
+    console.error("[/api/parse] Groq error:", err instanceof Error ? err.message : String(err));
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }

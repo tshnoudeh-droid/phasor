@@ -11,9 +11,23 @@ interface Props {
   height?: number;
 }
 
-const VOID = "#080B12";
-const SURFACE = "#0D1117";
-const BORDER = "#1E2435";
+function getCSSVar(name: string, fallback: string): string {
+  if (typeof window === "undefined") return fallback;
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+}
+
+function getColors() {
+  return {
+    VOID: getCSSVar("--phasor-canvas-bg", "#080B12"),
+    SURFACE: getCSSVar("--phasor-canvas-bg", "#0D1117"),
+    BORDER: getCSSVar("--phasor-border", "#1E2435"),
+    TRACE: getCSSVar("--phasor-trace", "#0EA5E9"),
+    ELECTRIC: getCSSVar("--phasor-electric", "#38BDF8"),
+    MUTED: getCSSVar("--phasor-muted", "#64748B"),
+  };
+}
+
+// Keep these as module-level fallbacks used in non-color logic
 const TRACE = "#0EA5E9";
 const ELECTRIC = "#38BDF8";
 const MUTED = "#64748B";
@@ -25,14 +39,15 @@ export default function SimCanvas({ states, systemType, width = 600, height = 30
 
   const drawFrame = useCallback(
     (ctx: CanvasRenderingContext2D, w: number, h: number, frameIdx: number) => {
+      const C = getColors();
       ctx.clearRect(0, 0, w, h);
 
       // Background
-      ctx.fillStyle = SURFACE;
+      ctx.fillStyle = C.SURFACE;
       ctx.fillRect(0, 0, w, h);
 
       // Grid
-      ctx.strokeStyle = BORDER;
+      ctx.strokeStyle = C.BORDER;
       ctx.lineWidth = 1;
       const gridCols = 8;
       const gridRows = 4;
@@ -82,7 +97,7 @@ export default function SimCanvas({ states, systemType, width = 600, height = 30
       // Draw zero line if in range
       if (minVal <= 0 && maxVal >= 0) {
         const zeroY = toY(0);
-        ctx.strokeStyle = MUTED;
+        ctx.strokeStyle = C.MUTED;
         ctx.lineWidth = 1;
         ctx.setLineDash([4, 4]);
         ctx.beginPath();
@@ -93,7 +108,7 @@ export default function SimCanvas({ states, systemType, width = 600, height = 30
       }
 
       // Draw full trace (dim)
-      ctx.strokeStyle = `${TRACE}44`;
+      ctx.strokeStyle = `${C.TRACE}44`;
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       for (let i = 0; i < states.length; i++) {
@@ -106,9 +121,9 @@ export default function SimCanvas({ states, systemType, width = 600, height = 30
 
       // Draw animated trace up to current frame
       const currentIdx = Math.min(frameIdx, states.length - 1);
-      ctx.strokeStyle = TRACE;
+      ctx.strokeStyle = C.TRACE;
       ctx.lineWidth = 2;
-      ctx.shadowColor = ELECTRIC;
+      ctx.shadowColor = C.ELECTRIC;
       ctx.shadowBlur = 6;
       ctx.beginPath();
       for (let i = 0; i <= currentIdx; i++) {
@@ -124,8 +139,8 @@ export default function SimCanvas({ states, systemType, width = 600, height = 30
       if (currentIdx < states.length) {
         const dotX = toX(tValues[currentIdx]);
         const dotY = toY(values[currentIdx]);
-        ctx.fillStyle = ELECTRIC;
-        ctx.shadowColor = ELECTRIC;
+        ctx.fillStyle = C.ELECTRIC;
+        ctx.shadowColor = C.ELECTRIC;
         ctx.shadowBlur = 12;
         ctx.beginPath();
         ctx.arc(dotX, dotY, 4, 0, Math.PI * 2);
@@ -135,17 +150,17 @@ export default function SimCanvas({ states, systemType, width = 600, height = 30
 
       // For projectile: also show x/y 2D path
       if (systemType === "projectile") {
-        drawProjectile2D(ctx, w, h, states, currentIdx);
+        drawProjectile2D(ctx, w, h, states, currentIdx, C);
       }
 
       // For pendulum: draw pendulum arm
       if (systemType === "pendulum") {
-        drawPendulumArm(ctx, w, h, states, currentIdx);
+        drawPendulumArm(ctx, w, h, states, currentIdx, C);
       }
 
       // For spring-mass: draw mass on spring
       if (systemType === "spring_mass") {
-        drawSpringMass(ctx, w, h, states, currentIdx, minVal, maxVal);
+        drawSpringMass(ctx, w, h, states, currentIdx, minVal, maxVal, C);
       }
     },
     [states, systemType]
@@ -192,17 +207,20 @@ export default function SimCanvas({ states, systemType, width = 600, height = 30
       width={width}
       height={height}
       className="w-full"
-      style={{ background: VOID, display: "block" }}
+      style={{ background: "var(--phasor-canvas-bg, #080B12)", display: "block" }}
     />
   );
 }
+
+type Colors = ReturnType<typeof getColors>;
 
 function drawPendulumArm(
   ctx: CanvasRenderingContext2D,
   w: number,
   h: number,
   states: ODEState[],
-  idx: number
+  idx: number,
+  C: Colors
 ) {
   const pivotX = w * 0.75;
   const pivotY = 30;
@@ -212,22 +230,22 @@ function drawPendulumArm(
   const bobX = pivotX + armLen * Math.sin(angle);
   const bobY = pivotY + armLen * Math.cos(angle);
 
-  ctx.strokeStyle = MUTED;
+  ctx.strokeStyle = C.MUTED;
   ctx.lineWidth = 1.5;
   ctx.beginPath();
   ctx.moveTo(pivotX, pivotY);
   ctx.lineTo(bobX, bobY);
   ctx.stroke();
 
-  ctx.fillStyle = ELECTRIC;
-  ctx.shadowColor = ELECTRIC;
+  ctx.fillStyle = C.ELECTRIC;
+  ctx.shadowColor = C.ELECTRIC;
   ctx.shadowBlur = 10;
   ctx.beginPath();
   ctx.arc(bobX, bobY, 7, 0, Math.PI * 2);
   ctx.fill();
   ctx.shadowBlur = 0;
 
-  ctx.fillStyle = MUTED;
+  ctx.fillStyle = C.MUTED;
   ctx.beginPath();
   ctx.arc(pivotX, pivotY, 3, 0, Math.PI * 2);
   ctx.fill();
@@ -240,9 +258,9 @@ function drawSpringMass(
   states: ODEState[],
   idx: number,
   minVal: number,
-  maxVal: number
+  maxVal: number,
+  C: Colors
 ) {
-  const valRange = maxVal - minVal || 1;
   const centerX = w * 0.8;
   const equilibriumY = h * 0.5;
   const scale = Math.min((h * 0.35) / Math.max(Math.abs(maxVal), Math.abs(minVal), 0.01), 60);
@@ -250,14 +268,13 @@ function drawSpringMass(
   const pos = states[idx].y[0];
   const massY = equilibriumY + pos * scale;
 
-  // Spring coils
   const anchorY = 15;
   const coils = 8;
-  ctx.strokeStyle = MUTED;
+  ctx.strokeStyle = C.MUTED;
   ctx.lineWidth = 1.5;
+  const springLen = massY - anchorY - 15;
   ctx.beginPath();
   ctx.moveTo(centerX, anchorY);
-  const springLen = massY - anchorY - 15;
   for (let i = 0; i <= coils * 4; i++) {
     const t = i / (coils * 4);
     const sx = centerX + (i % 2 === 0 ? 10 : -10) * Math.sin(t * Math.PI * coils * 2);
@@ -268,9 +285,8 @@ function drawSpringMass(
   ctx.lineTo(centerX, massY - 15);
   ctx.stroke();
 
-  // Mass block
-  ctx.fillStyle = ELECTRIC;
-  ctx.shadowColor = ELECTRIC;
+  ctx.fillStyle = C.ELECTRIC;
+  ctx.shadowColor = C.ELECTRIC;
   ctx.shadowBlur = 8;
   ctx.fillRect(centerX - 12, massY - 15, 24, 24);
   ctx.shadowBlur = 0;
@@ -281,7 +297,8 @@ function drawProjectile2D(
   w: number,
   h: number,
   states: ODEState[],
-  idx: number
+  idx: number,
+  C: Colors
 ) {
   const panelX = w * 0.55;
   const panelW = w * 0.42;
@@ -296,7 +313,7 @@ function drawProjectile2D(
   const toTX = (x: number) => panelX + (x / maxX) * panelW;
   const toTY = (y: number) => panelY + panelH - (y / Math.max(maxY, 1)) * panelH;
 
-  ctx.strokeStyle = `${TRACE}55`;
+  ctx.strokeStyle = `${C.TRACE}55`;
   ctx.lineWidth = 1;
   ctx.beginPath();
   for (let i = 0; i < states.length; i++) {
@@ -307,22 +324,23 @@ function drawProjectile2D(
   }
   ctx.stroke();
 
-  // Ball
   const bx = toTX(xs[idx]);
   const by = toTY(ys[idx]);
-  ctx.fillStyle = ELECTRIC;
-  ctx.shadowColor = ELECTRIC;
+  ctx.fillStyle = C.ELECTRIC;
+  ctx.shadowColor = C.ELECTRIC;
   ctx.shadowBlur = 10;
   ctx.beginPath();
   ctx.arc(bx, by, 5, 0, Math.PI * 2);
   ctx.fill();
   ctx.shadowBlur = 0;
 
-  // Ground line
-  ctx.strokeStyle = MUTED;
+  ctx.strokeStyle = C.MUTED;
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(panelX, panelY + panelH);
   ctx.lineTo(panelX + panelW, panelY + panelH);
   ctx.stroke();
 }
+
+// Suppress unused import
+void TRACE; void ELECTRIC; void MUTED;

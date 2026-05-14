@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+/* Dark mode (default) */
 :root {
   --phasor-void: #080B12;
   --phasor-surface: #0D1117;
@@ -8,6 +9,19 @@
   --phasor-trace: #0EA5E9;
   --phasor-snow: #F1F5F9;
   --phasor-muted: #64748B;
+  --phasor-canvas-bg: #0D1117;
+}
+
+/* Light mode */
+[data-theme="light"] {
+  --phasor-void: #F0F4F8;
+  --phasor-surface: #FFFFFF;
+  --phasor-border: #CBD5E1;
+  --phasor-electric: #0284C7;
+  --phasor-trace: #0369A1;
+  --phasor-snow: #0F172A;
+  --phasor-muted: #64748B;
+  --phasor-canvas-bg: #F8FAFC;
 }
 
 @theme inline {
@@ -28,4 +42,26 @@ body {
   color: var(--phasor-snow);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   height: 100%;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: var(--phasor-void);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--phasor-border);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--phasor-muted);
+}
+
+/* KaTeX light mode fix */
+[data-theme="light"] .katex {
+  color: var(--phasor-snow);
 }

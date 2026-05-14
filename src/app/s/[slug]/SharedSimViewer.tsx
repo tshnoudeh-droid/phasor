@@ -84,16 +84,25 @@ export default function SharedSimViewer({ systemType, parameters, slug }: Props)
         )}
       </div>
 
-      <div className="px-6 py-4 border-t border-phasor-border text-center">
+      <div className="px-6 py-4 border-t border-phasor-border flex flex-col sm:flex-row items-center justify-between gap-2">
         <p className="text-phasor-muted text-xs">
-          Shared via{" "}
-          <span className="text-phasor-snow font-mono">
-            {appUrl}/s/{slug}
-          </span>
+          <span className="text-phasor-snow font-mono">{appUrl}/s/{slug}</span>
           {" · "}
           <Link href="/sim" className="text-phasor-electric hover:underline">
-            build your own simulation
+            build your own →
           </Link>
+        </p>
+        <p className="text-phasor-muted text-xs">
+          built by{" "}
+          <a href="https://tawficshnoudeh.com" target="_blank" rel="noopener noreferrer"
+            className="text-phasor-snow hover:text-phasor-electric transition-colors duration-150">
+            tawfic shnoudeh
+          </a>
+          {" · "}
+          <a href="https://linkedin.com/in/tawficshnoudeh" target="_blank" rel="noopener noreferrer"
+            className="hover:text-phasor-snow transition-colors duration-150">
+            linkedin
+          </a>
         </p>
       </div>
     </div>

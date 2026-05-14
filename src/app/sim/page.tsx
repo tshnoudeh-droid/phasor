@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import Navbar from "@/components/layout/Navbar";
 import SliderPanel from "@/components/sim/SliderPanel";
 import EquationDisplay from "@/components/sim/EquationDisplay";
+import SimErrorBoundary from "@/components/sim/SimErrorBoundary";
 import ChatPanel from "@/components/chat/ChatPanel";
 import { useSimulation } from "@/hooks/useSimulation";
 import { useConversation } from "@/hooks/useConversation";
@@ -86,24 +87,35 @@ function SimPageInner() {
   const solver = currentSystem ? getSolver(currentSystem) : null;
 
   return (
-    <div className="flex flex-col h-screen bg-phasor-void overflow-hidden">
+    <div className="flex flex-col h-screen bg-phasor-void overflow-hidden md:overflow-hidden overflow-auto">
       <Navbar />
 
-      {/* Simulation panel — ~55% */}
+      {/* Simulation panel — ~55% on desktop, auto on mobile */}
       <div
-        className="flex border-b border-phasor-border"
+        className="flex border-b border-phasor-border flex-shrink-0"
         style={{ flex: "0 0 55%" }}
       >
         {/* Canvas + sliders */}
         <div className="flex flex-col flex-1 min-w-0">
           <div className="flex-1 relative">
             {result ? (
-              <SimCanvas
-                states={result.states}
-                systemType={result.systemType}
-                width={800}
-                height={220}
-              />
+              <SimErrorBoundary>
+                <SimCanvas
+                  states={result.states}
+                  systemType={result.systemType}
+                  width={800}
+                  height={220}
+                />
+              </SimErrorBoundary>
+            ) : isLoading ? (
+              <div className="w-full h-full flex items-center justify-center bg-phasor-surface">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-48 h-px bg-phasor-border relative overflow-hidden">
+                    <div className="absolute inset-y-0 left-0 w-1/3 bg-phasor-electric animate-pulse" />
+                  </div>
+                  <span className="text-phasor-muted text-xs font-mono">solving...</span>
+                </div>
+              </div>
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-phasor-surface text-phasor-muted text-sm">
                 Describe a physical system below to begin.
@@ -119,8 +131,8 @@ function SimPageInner() {
           )}
         </div>
 
-        {/* Equation panel */}
-        <div className="w-52 shrink-0 border-l border-phasor-border bg-phasor-surface overflow-hidden flex flex-col">
+        {/* Equation panel — hidden on mobile */}
+        <div className="hidden md:flex w-52 shrink-0 border-l border-phasor-border bg-phasor-surface overflow-hidden flex-col">
           {result && solver ? (
             <>
               <div className="flex-1 overflow-hidden">
